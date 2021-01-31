@@ -83,6 +83,7 @@
 #define Meta_apID 'Y'
 #define Meta_cnID 0xC0
 #define Meta_geID 0xC2
+#define Meta_plID 0xCA
 #define Meta_xID 0xC3
 #define Meta_storedescription 0xC4
 #define Meta_EncodingTool 0xB7
@@ -218,6 +219,7 @@ static const char *shortHelp_text =
     "  --apID         (string)     Set the Account Name\n"
     "  --cnID         (number)     Set the iTunes Catalog ID (see --longhelp)\n"
     "  --geID         (number)     Set the iTunes Genre ID (see --longhelp)\n"
+    "  --plID         (number)     Set the iTunes Playlist ID (see --longhelp)\n"
     "  --xID          (string)     Set the vendor-supplied iTunes xID (see "
     "--longhelp)\n"
     "  --gapless      (boolean)    Set the gapless playback flag\n"
@@ -400,6 +402,8 @@ static const char *longHelp_text =
     "necessarily have to match genre.\n"
     "                                      See --genre-movie-id-list and "
     "--genre-tv-id-list\n"
+    "\n"
+    "  --plID             ,       (num)    Set iTunes Playlist ID."
     "\n"
     "  --xID              ,       (str)    Set iTunes vendor-supplied xID, "
     "used to allow iTunes LPs and iTunes Extras to interact \n"
@@ -1537,6 +1541,7 @@ int real_main(int argc, char *argv[]) {
       {"apID", required_argument, NULL, Meta_apID},
       {"cnID", required_argument, NULL, Meta_cnID},
       {"geID", required_argument, NULL, Meta_geID},
+      {"plID", required_argument, NULL, Meta_plID},
       {"xID", required_argument, NULL, Meta_xID},
       {"gapless", required_argument, NULL, Meta_PlayGapless},
       {"sortOrder", required_argument, NULL, Meta_SortOrder},
@@ -2492,6 +2497,25 @@ int real_main(int argc, char *argv[]) {
       AtomicInfo *geIDData_atom = APar_MetaData_atom_Init(
           "moov.udta.meta.ilst.geID.data", optarg, AtomFlags_Data_UInt);
       APar_Unified_atom_Put(geIDData_atom,
+                            NULL,
+                            UTF8_iTunesStyle_256glyphLimited,
+                            data_value,
+                            32);
+      break;
+    }
+
+    case Meta_plID: { // the iTunes Playlist ID
+      APar_ScanAtoms(ISObasemediafile);
+      if (!APar_assert(metadata_style == ITUNES_STYLE, 1, "iTunes Playlist ID")) {
+        break;
+      }
+
+      uint32_t data_value = 0;
+      sscanf(optarg, "%" SCNu32, &data_value);
+
+      AtomicInfo *plIDData_atom = APar_MetaData_atom_Init(
+          "moov.udta.meta.ilst.plID.data", optarg, AtomFlags_Data_UInt);
+      APar_Unified_atom_Put(plIDData_atom,
                             NULL,
                             UTF8_iTunesStyle_256glyphLimited,
                             data_value,
